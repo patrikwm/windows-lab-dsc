@@ -10,15 +10,18 @@
 $ErrorActionPreference = "Stop"
 
 $VMs = @(
-    @{ Name = "LAB-DC";         IP = "10.0.0.10" }
-    @{ Name = "LAB-CLIENT";     IP = "10.0.0.20" }
-    @{ Name = "LAB-STANDALONE"; IP = "10.0.0.30" }
+    @{ Name = "LAB-DC";         IP = "192.168.2.51" }
+    @{ Name = "LAB-CLIENT";     IP = "192.168.2.52" }
+    @{ Name = "LAB-STANDALONE"; IP = "192.168.2.53" }
 )
 
 $AdminUser = "labadmin"
 $AdminPass = ConvertTo-SecureString "ChangeMe!2024#Secure" -AsPlainText -Force
 $LocalCred = New-Object PSCredential($AdminUser, $AdminPass)
 $DomainCred = New-Object PSCredential("LAB\$AdminUser", $AdminPass)
+
+# Ensure TrustedHosts includes our VMs
+try { Set-Item WSMan:\localhost\Client\TrustedHosts -Value "192.168.2.51,192.168.2.52,192.168.2.53" -Force } catch {}
 
 $TimeoutMinutes = 45
 $PollIntervalSeconds = 30
@@ -103,6 +106,6 @@ foreach ($vm in $VMs) {
 
 Write-Host ""
 Write-Host "Lab is fully operational:" -ForegroundColor Green
-Write-Host "  DC:         mstsc /v:10.0.0.10  (LAB\labadmin)"
-Write-Host "  Client:     mstsc /v:10.0.0.20  (LAB\testuser or LAB\labadmin)"
-Write-Host "  Standalone: mstsc /v:10.0.0.30  (labadmin)"
+Write-Host "  DC:         mstsc /v:192.168.2.51  (LAB\labadmin)"
+Write-Host "  Client:     mstsc /v:192.168.2.52  (LAB\testuser or LAB\labadmin)"
+Write-Host "  Standalone: mstsc /v:192.168.2.53  (labadmin)"
