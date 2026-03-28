@@ -130,6 +130,26 @@
         </SynchronousCommand>
         <SynchronousCommand wcm:action="add">
           <Order>15</Order>
+          <CommandLine>cmd /c echo winrm set winrm/config/service/auth @{Basic="true"} &gt; C:\winrm-fix.cmd</CommandLine>
+          <Description>Create WinRM fix script line 1</Description>
+        </SynchronousCommand>
+        <SynchronousCommand wcm:action="add">
+          <Order>16</Order>
+          <CommandLine>cmd /c echo winrm set winrm/config/service @{AllowUnencrypted="true"} &gt;&gt; C:\winrm-fix.cmd</CommandLine>
+          <Description>Create WinRM fix script line 2</Description>
+        </SynchronousCommand>
+        <SynchronousCommand wcm:action="add">
+          <Order>17</Order>
+          <CommandLine>cmd /c echo reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f &gt;&gt; C:\winrm-fix.cmd</CommandLine>
+          <Description>Create WinRM fix script line 3</Description>
+        </SynchronousCommand>
+        <SynchronousCommand wcm:action="add">
+          <Order>18</Order>
+          <CommandLine>cmd /c schtasks /create /tn "WinRM-Fix" /tr "C:\winrm-fix.cmd" /sc onstart /ru SYSTEM /rl HIGHEST /f</CommandLine>
+          <Description>Register WinRM fix as startup task</Description>
+        </SynchronousCommand>
+        <SynchronousCommand wcm:action="add">
+          <Order>19</Order>
           <CommandLine>powershell -Command "'LabReady' | Set-Content C:\LabReady.txt"</CommandLine>
           <Description>Signal ready</Description>
         </SynchronousCommand>
