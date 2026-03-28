@@ -44,34 +44,26 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot = Split-Path -Parent $ScriptDir
 $AutounattendDir = Join-Path $RepoRoot "autounattend"
 
-# Function to create a small ISO from a directory using IMAPI2
-function New-AutounattendIso {
-    param([string]$SourceDir, [string]$OutputIso)
+# Function to create a small VHDX with autounattend.xml
+# Gen2 VMs can't use floppies, and IMAPI2 ISO creation is unreliable.
+# Instead, we create a tiny FAT32 VHDX and attach it as a second drive.
+# Windows Setup searches all drives for autounattend.xml.
+function New-AutounattendVhdx {
+    param([string]$XmlPath, [string]$OutputVhdx)
 
-    $fsi = New-Object -ComObject IMAPI2FS.MsftFileSystemImage
-    $fsi.FileSystemsToCreate = 2  # FsiFileSystemISO9660
-    $fsi.VolumeName = "AUTOUNATTEND"
+    # Create a 50MB VHDX
+    $vhdx = New-VHD -Path $OutputVhdx -SizeBytes 50MB -Fixed
 
-    $sourceDir = Get-Item $SourceDir
-    foreach ($file in (Get-ChildItem $SourceDir)) {
-        $stream = New-Object -ComObject ADODB.Stream
-        $stream.Open()
-        $stream.Type = 1  # Binary
-        $stream.LoadFromFile($file.FullName)
-        $fsi.Root.AddFile($file.Name, $stream)
-    }
+    # Mount, initialize, format, copy file
+    $disk = Mount-VHD -Path $OutputVhdx -Passthru | Get-Disk
+    $disk | Initialize-Disk -PartitionStyle MBR -Confirm:$false
+    $partition = $disk | New-Partition -UseMaximumSize -AssignDriveLetter
+    $volume = $partition | Format-Volume -FileSystem FAT32 -NewFileSystemLabel "AUTOUNATTEND" -Confirm:$false
 
-    $result = $fsi.CreateResultImage()
-    $resultStream = $result.ImageStream
+    $driveLetter = $partition.DriveLetter
+    Copy-Item -Path $XmlPath -Destination "${driveLetter}:\autounattend.xml"
 
-    $outStream = [System.IO.File]::Create($OutputIso)
-    $buffer = New-Object byte[] 2048
-    while ($true) {
-        $bytesRead = $resultStream.Read($buffer, 0, $buffer.Length)
-        if ($bytesRead -eq 0) { break }
-        $outStream.Write($buffer, 0, $bytesRead)
-    }
-    $outStream.Close()
+    Dismount-VHD -Path $OutputVhdx
 }
 
 foreach ($vm in $VMs) {
@@ -130,18 +122,17 @@ foreach ($vm in $VMs) {
     $xmlContent = $xmlContent -replace '\$\{GITHUB_BRANCH\}', $GitHubBranch
     $xmlContent = $xmlContent -replace '\$\{VM_ROLE\}', $vm.Role
 
-    # Create autounattend ISO
-    $tempDir = Join-Path $env:TEMP "autounattend-$vmName"
-    if (Test-Path $tempDir) { Remove-Item $tempDir -Recurse -Force }
-    New-Item -ItemType Directory -Path $tempDir | Out-Null
-    $xmlContent | Set-Content -Path (Join-Path $tempDir "autounattend.xml") -Encoding UTF8
+    # Create autounattend VHDX
+    $tempXml = Join-Path $env:TEMP "autounattend-$vmName.xml"
+    $xmlContent | Set-Content -Path $tempXml -Encoding UTF8
 
-    $auIsoPath = Join-Path $vmDir "autounattend.iso"
-    New-AutounattendIso -SourceDir $tempDir -OutputIso $auIsoPath
-    Remove-Item $tempDir -Recurse -Force
+    $auVhdxPath = Join-Path $vmDir "autounattend.vhdx"
+    if (Test-Path $auVhdxPath) { Remove-Item $auVhdxPath -Force }
+    New-AutounattendVhdx -XmlPath $tempXml -OutputVhdx $auVhdxPath
+    Remove-Item $tempXml -Force
 
-    # Attach autounattend ISO as second DVD
-    Add-VMDvdDrive -VMName $vmName -Path $auIsoPath
+    # Attach autounattend VHDX as second hard drive
+    Add-VMHardDiskDrive -VMName $vmName -Path $auVhdxPath
 
     Write-Host "  Created: $vmName ($($vm.IP), $($vm.Role))" -ForegroundColor Green
 }
