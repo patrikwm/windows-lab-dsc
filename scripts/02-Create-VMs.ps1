@@ -18,7 +18,7 @@ param(
 )
 
 $ErrorActionPreference = "Continue"
-$SwitchName = "External-LAN"
+$SwitchName = "WinLab"
 
 if (-not (Test-Path $VhdPath)) {
     Write-Error "VHD not found: $VhdPath"
@@ -31,8 +31,8 @@ if (-not (Get-VMSwitch -Name $SwitchName -ErrorAction SilentlyContinue)) {
 }
 
 $VMs = @(
-    @{ Name = "LAB-DC";         IP = "192.168.2.51"; DNS = "8.8.8.8";        Gateway = "192.168.2.1" }
-    @{ Name = "LAB-CLIENT";     IP = "192.168.2.52"; DNS = "192.168.2.51";   Gateway = "192.168.2.1" }
+    @{ Name = "LAB-DC";         IP = "192.168.2.50"; DNS = "8.8.8.8";        Gateway = "192.168.2.1" }
+    @{ Name = "LAB-CLIENT";     IP = "192.168.2.51"; DNS = "192.168.2.50";   Gateway = "192.168.2.1" }
     @{ Name = "LAB-STANDALONE"; IP = "192.168.2.53"; DNS = "8.8.8.8";        Gateway = "192.168.2.1" }
 )
 
