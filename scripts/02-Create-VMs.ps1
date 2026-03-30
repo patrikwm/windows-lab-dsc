@@ -18,22 +18,29 @@ param(
 )
 
 $ErrorActionPreference = "Continue"
-$SwitchName = "WinLab"
+
+# Try common switch names
+$SwitchName = $null
+foreach ($name in @("External-LAN", "WinLab", "Default Switch")) {
+    if (Get-VMSwitch -Name $name -ErrorAction SilentlyContinue) { $SwitchName = $name; break }
+}
+if (-not $SwitchName) {
+    Write-Host "No known Hyper-V switch found. Available:" -ForegroundColor Yellow
+    Get-VMSwitch | Format-Table Name, SwitchType -AutoSize
+    $SwitchName = Read-Host "Enter switch name"
+}
+Write-Host "Using switch: $SwitchName" -ForegroundColor Cyan
 
 if (-not (Test-Path $VhdPath)) {
     Write-Error "VHD not found: $VhdPath"
     exit 1
 }
 
-if (-not (Get-VMSwitch -Name $SwitchName -ErrorAction SilentlyContinue)) {
-    Write-Error "Switch '$SwitchName' not found. Run 01-Create-LabNetwork.ps1 first."
-    exit 1
-}
-
 $VMs = @(
-    @{ Name = "LAB-DC";         IP = "192.168.2.50"; DNS = "8.8.8.8";        Gateway = "192.168.2.1" }
-    @{ Name = "LAB-CLIENT";     IP = "192.168.2.51"; DNS = "192.168.2.50";   Gateway = "192.168.2.1" }
-    @{ Name = "LAB-STANDALONE"; IP = "192.168.2.53"; DNS = "8.8.8.8";        Gateway = "192.168.2.1" }
+    @{ Name = "LAB-DC";             IP = "192.168.2.50"; DNS = "8.8.8.8";        Gateway = "192.168.2.1" }
+    @{ Name = "LAB-CLIENT-1";       IP = "192.168.2.51"; DNS = "192.168.2.50";   Gateway = "192.168.2.1" }
+    @{ Name = "LAB-CLIENT-2";       IP = "192.168.2.52"; DNS = "192.168.2.50";   Gateway = "192.168.2.1" }
+    @{ Name = "LAB-CLIENT-LOCAL-1"; IP = "192.168.2.53"; DNS = "8.8.8.8";        Gateway = "192.168.2.1" }
 )
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -95,7 +102,7 @@ foreach ($vm in $VMs) {
         $xmlContent | Set-Content -Path "$pantherDir\unattend.xml" -Encoding UTF8
 
         # Inject oobe-setup.ps1 (with per-VM variable substitution)
-        $setupTemplate = Join-Path $AutounattendDir "oobe-setup.ps1"
+        $setupTemplate = Join-Path $RepoRoot "autounattend\oobe-setup.ps1"
         if (Test-Path $setupTemplate) {
             $setupContent = Get-Content $setupTemplate -Raw
             $setupContent = $setupContent -replace '\$\{IP_ADDRESS\}', $vm.IP

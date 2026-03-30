@@ -9,7 +9,7 @@ $VmPath = "C:\fastdisk\hyper-v"
 
 Write-Host "Tearing down lab..." -ForegroundColor Yellow
 
-foreach ($vmName in @("LAB-DC", "LAB-CLIENT", "LAB-STANDALONE")) {
+foreach ($vmName in @("LAB-DC", "LAB-CLIENT-1", "LAB-CLIENT-2", "LAB-CLIENT-LOCAL-1")) {
     $vm = Get-VM -Name $vmName -ErrorAction SilentlyContinue
     if ($vm) {
         if ($vm.State -eq 'Running') {

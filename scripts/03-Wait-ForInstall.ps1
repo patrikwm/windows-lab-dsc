@@ -10,9 +10,10 @@
 $ErrorActionPreference = "Stop"
 
 $VMs = @(
-    @{ Name = "LAB-DC";         IP = "192.168.2.51" }
-    @{ Name = "LAB-CLIENT";     IP = "192.168.2.52" }
-    @{ Name = "LAB-STANDALONE"; IP = "192.168.2.53" }
+    @{ Name = "LAB-DC";             IP = "192.168.2.50" }
+    @{ Name = "LAB-CLIENT-1";       IP = "192.168.2.51" }
+    @{ Name = "LAB-CLIENT-2";       IP = "192.168.2.52" }
+    @{ Name = "LAB-CLIENT-LOCAL-1"; IP = "192.168.2.53" }
 )
 
 $AdminUser = "labadmin"
@@ -21,7 +22,7 @@ $LocalCred = New-Object PSCredential($AdminUser, $AdminPass)
 $DomainCred = New-Object PSCredential("LAB\$AdminUser", $AdminPass)
 
 # Ensure TrustedHosts includes our VMs
-try { Set-Item WSMan:\localhost\Client\TrustedHosts -Value "192.168.2.51,192.168.2.52,192.168.2.53" -Force } catch {}
+try { Set-Item WSMan:\localhost\Client\TrustedHosts -Value "192.168.2.*" -Force } catch {}
 
 $TimeoutMinutes = 45
 $PollIntervalSeconds = 30
@@ -105,7 +106,9 @@ foreach ($vm in $VMs) {
 }
 
 Write-Host ""
-Write-Host "Lab is fully operational:" -ForegroundColor Green
-Write-Host "  DC:         mstsc /v:192.168.2.51  (LAB\labadmin)"
-Write-Host "  Client:     mstsc /v:192.168.2.52  (LAB\testuser or LAB\labadmin)"
-Write-Host "  Standalone: mstsc /v:192.168.2.53  (labadmin)"
+Write-Host "All VMs ready! Next: run 04-Setup-Domain.ps1" -ForegroundColor Green
+Write-Host ""
+Write-Host "  LAB-DC:             192.168.2.50  (labadmin)"
+Write-Host "  LAB-CLIENT-1:       192.168.2.51  (labadmin) - production reference"
+Write-Host "  LAB-CLIENT-2:       192.168.2.52  (labadmin) - dev/test"
+Write-Host "  LAB-CLIENT-LOCAL-1: 192.168.2.53  (labadmin) - standalone/workgroup"

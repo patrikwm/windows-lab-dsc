@@ -32,7 +32,7 @@ $secAdminPass = ConvertTo-SecureString $AdminPassword -AsPlainText -Force
 $localCred = New-Object PSCredential("labadmin", $secAdminPass)
 
 $ClientVMs = @(
-    @{ Name = "LAB-CLIENT";   IP = "192.168.2.51" }
+    @{ Name = "LAB-CLIENT-1"; IP = "192.168.2.51" }
     @{ Name = "LAB-CLIENT-2"; IP = "192.168.2.52" }
 )
 
