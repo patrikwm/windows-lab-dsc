@@ -133,8 +133,22 @@ foreach ($vm in $VMs) {
     if ($drive) {
         $pantherDir = "$drive\Windows\Panther"
         if (-not (Test-Path $pantherDir)) { New-Item -ItemType Directory -Path $pantherDir -Force | Out-Null }
+
+        # Inject unattend.xml (hostname, NLA settings)
         $xmlContent | Set-Content -Path "$pantherDir\unattend.xml" -Encoding UTF8
-        Write-Host "  Injected to $pantherDir" -ForegroundColor Gray
+
+        # Inject oobe-setup.ps1 (static IP, WinRM, firewall, LabReady signal)
+        $setupTemplate = Join-Path $RepoRoot "autounattend\oobe-setup.ps1"
+        if (Test-Path $setupTemplate) {
+            $setupContent = Get-Content $setupTemplate -Raw
+            $setupContent = $setupContent -replace '\$\{IP_ADDRESS\}', $vm.IP
+            $setupContent = $setupContent -replace '\$\{DNS_SERVER\}', $vm.DNS
+            $setupContent = $setupContent -replace '\$\{GATEWAY\}', $vm.Gateway
+            $setupContent | Set-Content -Path "$pantherDir\oobe-setup.ps1" -Encoding UTF8
+            Write-Host "  Injected unattend.xml + oobe-setup.ps1 to $pantherDir" -ForegroundColor Gray
+        } else {
+            Write-Host "  Injected unattend.xml to $pantherDir (oobe-setup.ps1 not found)" -ForegroundColor Yellow
+        }
     } else {
         Write-Warning "  Could not find Windows partition!"
     }

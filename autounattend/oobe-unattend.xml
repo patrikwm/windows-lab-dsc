@@ -150,8 +150,8 @@
         </SynchronousCommand>
         <SynchronousCommand wcm:action="add">
           <Order>19</Order>
-          <CommandLine>powershell -Command "'LabReady' | Set-Content C:\LabReady.txt"</CommandLine>
-          <Description>Signal ready</Description>
+          <CommandLine>powershell -ExecutionPolicy Bypass -File C:\Windows\Panther\oobe-setup.ps1</CommandLine>
+          <Description>Run post-OOBE setup (static IP, WinRM, firewall, LabReady)</Description>
         </SynchronousCommand>
       </FirstLogonCommands>
     </component>
