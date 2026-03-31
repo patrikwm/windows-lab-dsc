@@ -40,7 +40,7 @@ $VMs = @(
     @{ Name = "LAB-DC";             IP = "192.168.2.50"; DNS = "8.8.8.8";        Gateway = "192.168.2.1" }
     @{ Name = "LAB-CLIENT-1";       IP = "192.168.2.51"; DNS = "192.168.2.50";   Gateway = "192.168.2.1" }
     @{ Name = "LAB-CLIENT-2";       IP = "192.168.2.52"; DNS = "192.168.2.50";   Gateway = "192.168.2.1" }
-    @{ Name = "LAB-CLIENT-LOCAL-1"; IP = "192.168.2.53"; DNS = "8.8.8.8";        Gateway = "192.168.2.1" }
+    @{ Name = "LAB-LOCAL-1"; IP = "192.168.2.53"; DNS = "8.8.8.8";        Gateway = "192.168.2.1" }
 )
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path

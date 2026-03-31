@@ -9,7 +9,7 @@ Automated Hyper-V lab with 4 Windows Server 2022 VMs for testing the Mideye Cred
 | LAB-DC | Domain Controller | 192.168.2.50 | AD DS + DNS + GPMC, test users with AD attributes |
 | LAB-CLIENT-1 | Domain-joined | 192.168.2.51 | Production reference (DO NOT deploy untested changes) |
 | LAB-CLIENT-2 | Domain-joined | 192.168.2.52 | Dev/test machine for Mideye deployment |
-| LAB-CLIENT-LOCAL-1 | Standalone | 192.168.2.53 | Local users, registry-based config, no domain |
+| LAB-LOCAL-1 | Standalone | 192.168.2.53 | Local users, registry-based config, no domain |
 
 All VMs: Windows Server 2022, 4GB RAM, 2 vCPU, labadmin / ChangeMe!2024#Secure
 
@@ -75,7 +75,7 @@ See `mideye-rdp-credential-provider/docs/INTEGRATION-GUIDE.md` for the full setu
 ## Network
 
 ```
-  LAB-DC        LAB-CLIENT-1   LAB-CLIENT-2   LAB-CLIENT-LOCAL-1
+  LAB-DC        LAB-CLIENT-1   LAB-CLIENT-2   LAB-LOCAL-1
   .2.50         .2.51          .2.52          .2.53
     |               |              |              |
     +---------------+--------------+--------------+

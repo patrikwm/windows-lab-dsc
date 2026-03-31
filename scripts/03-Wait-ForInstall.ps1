@@ -13,7 +13,7 @@ $VMs = @(
     @{ Name = "LAB-DC";             IP = "192.168.2.50" }
     @{ Name = "LAB-CLIENT-1";       IP = "192.168.2.51" }
     @{ Name = "LAB-CLIENT-2";       IP = "192.168.2.52" }
-    @{ Name = "LAB-CLIENT-LOCAL-1"; IP = "192.168.2.53" }
+    @{ Name = "LAB-LOCAL-1"; IP = "192.168.2.53" }
 )
 
 $AdminUser = "labadmin"
@@ -111,4 +111,4 @@ Write-Host ""
 Write-Host "  LAB-DC:             192.168.2.50  (labadmin)"
 Write-Host "  LAB-CLIENT-1:       192.168.2.51  (labadmin) - production reference"
 Write-Host "  LAB-CLIENT-2:       192.168.2.52  (labadmin) - dev/test"
-Write-Host "  LAB-CLIENT-LOCAL-1: 192.168.2.53  (labadmin) - standalone/workgroup"
+Write-Host "  LAB-LOCAL-1: 192.168.2.53  (labadmin) - standalone/workgroup"
