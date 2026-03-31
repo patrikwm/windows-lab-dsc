@@ -206,10 +206,12 @@ foreach ($client in $ClientVMs) {
 
         } -ArgumentList $DcIp, $DomainName, $AdminPassword, $DomainNetBIOS
 
-        # Add Domain Users to Remote Desktop Users
+        # Add Domain Users to Remote Desktop Users + ensure labadmin stays admin
         Invoke-Command -Session $session -ScriptBlock {
             param($DomainNetBIOS)
             net localgroup "Remote Desktop Users" "$DomainNetBIOS\Domain Users" /add 2>$null
+            net localgroup Administrators labadmin /add 2>$null
+            net localgroup Administrators "$DomainNetBIOS\labadmin" /add 2>$null
         } -ArgumentList $DomainNetBIOS
 
         Remove-PSSession $session
