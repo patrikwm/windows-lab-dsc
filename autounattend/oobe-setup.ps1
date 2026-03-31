@@ -9,9 +9,15 @@ Write-Host "=== Lab VM Post-OOBE Setup ==="
 Write-Host "Setting network to Private..."
 Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private
 
-# 2. Static IP
+# 2. Static IP (with retry — adapter may not be ready immediately)
 Write-Host "Configuring static IP: ${IP_ADDRESS}..."
-$adapter = Get-NetAdapter | Where-Object Status -eq "Up" | Select-Object -First 1
+$adapter = $null
+for ($retry = 0; $retry -lt 10; $retry++) {
+    $adapter = Get-NetAdapter | Where-Object Status -eq "Up" | Select-Object -First 1
+    if ($adapter) { break }
+    Write-Host "  Waiting for network adapter... ($retry)"
+    Start-Sleep -Seconds 3
+}
 if ($adapter) {
     $adapterName = $adapter.Name
     Get-NetIPAddress -InterfaceAlias $adapterName -AddressFamily IPv4 -ErrorAction SilentlyContinue | Remove-NetIPAddress -Confirm:$false -ErrorAction SilentlyContinue
@@ -19,8 +25,12 @@ if ($adapter) {
     New-NetIPAddress -InterfaceAlias $adapterName -IPAddress "${IP_ADDRESS}" -PrefixLength 24 -DefaultGateway "${GATEWAY}"
     Set-DnsClientServerAddress -InterfaceAlias $adapterName -ServerAddresses "${DNS_SERVER}","8.8.8.8"
     Write-Host "IP set on adapter: $adapterName"
+    # Verify
+    Start-Sleep -Seconds 2
+    $currentIP = (Get-NetIPAddress -InterfaceAlias $adapterName -AddressFamily IPv4 -ErrorAction SilentlyContinue).IPAddress
+    Write-Host "Verified IP: $currentIP"
 } else {
-    Write-Host "WARNING: No active network adapter found!"
+    Write-Host "WARNING: No active network adapter found after 30 seconds!"
 }
 
 # 3. Enable WinRM
